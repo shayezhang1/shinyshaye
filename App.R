@@ -76,7 +76,7 @@ server <- function(input,output) {
   PPM = reactive(mg*DR()/((SGDRA/SGgas)-b*SGDRA/SGgas*DR()))
   
   #reactive expressions cache values
-  output$PPM_Results <- renderPrint('PPM results provided below')
+  output$PPM_Results <- renderPrint('PPM results provided below!')
   output$stats <- renderPrint(PPM())
 }
 shinyApp(ui = ui, server = server)
