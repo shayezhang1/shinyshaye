@@ -3,7 +3,7 @@
 #install.packages("shinythemes") and library
 
 ui <- fluidPage(
-  headerPanel('Station Bypass DRA Tool'),
+  headerPanel('Shiny Station Bypass DRA Tool'),
   
   mainPanel(
     tabsetPanel(type = "tabs",
@@ -132,7 +132,7 @@ ui <- fluidPage(
 )
 ),
 
-#Line 3 and Line 4 
+#LINE 3 and LINE 4 INPUT
 tabPanel("Line 3 & 4",
   sliderInput(inputId = "rate3",
       label = "Drag to a target rate in thousands BPH",
@@ -155,7 +155,6 @@ tabPanel("Line 3 & 4",
               "Select Upstream Station",
               choices = list(
                 "Greensboro" = "GBN",
-                "Reisterstown" = "RSB",
                 "Landenburg" = "LDB",
                 "Woodbury" ='WBJ',
                 "Allentown" = "ALB"
@@ -164,23 +163,22 @@ tabPanel("Line 3 & 4",
   selectInput("Bstation3",
               "Select Bypassing Station",
               choices = list(
-                "Greensboro" = "GBN",
-                "Reisterstown" = "RSB",
-                "Landenburg" = "LDB",
-                "Woodbury" ='WBJ',
+                "Witt" ="WTB",
+                "Brandywine" = "BWB",
+                "Pennsauken" ='PNJ',
                 "Allentown" = "ALB"
               )
   ),
-  
   selectInput("Cstation3",
               "Select Downstream Station",
               choices = list(
-                "Greensboro" = "GBN",
-                "Reisterstown" = "RSB",
-                "Landenburg" = "LDB",
+                "Witt" = "WTB",
+                "Hickory Grove" = "HGB",
+                "Hancock" = "HCB",
+                "Brandywine"="BWB",
                 "Woodbury" ='WBJ',
                 "Allentown" = "ALB",
-                "Dorsey" = "DSY"
+                "Linden" = "LNJ"
               )
   ),
   
@@ -506,7 +504,7 @@ server <- function(input,output) {
     else {x = 0.06}
     return(x)
   })
-  # for BRJ and Atlanta Bypass
+  # for BRJ and Atlanta Bypass (ATJ work in progress)
   adder <- reactive ({
     if (input$line == 1 && input$Bstation == 'BRJ'||
         input$line == 1 && input$Bstation == 'ATB'
@@ -555,7 +553,7 @@ server <- function(input,output) {
   )
   anglemax = reactive(max(angleac(),anglebc()))
   
-  #finish up X and DR and rate and PPM 
+  # DR and rate and PPM 
   ratein <- reactive({
     if (input$line == 1){ratein = input$rate^2*0.0017+0.0216*input$rate-0.1167}
     else {ratein = input$rate^2*0.0037+0.0462*input$rate-0.1978}
@@ -572,23 +570,30 @@ server <- function(input,output) {
   output$stats <- renderPrint(PPM())
   output$LOL <- renderPrint("Have a Great Day")
   
-  #Line 3 and Line 4
+  #LINE 3 AND LINE 4
   
   #mileage data
   GBNmile = 0
-  RSBmile = 305.93
+  WTBmile = 53.46
+  HGBmile = 77.43
+  HCBmile = 99.46
   LDBmile = 366.79
+  BWBmile = 386.23
   WBJmile = 405.69
+  PNJmile = 424.5
   ALBmile = 445.2
-  DSYmile = 288.85
-  
+  LNJmile = 484.16
   #Elevation data
   GBNele = 870
-  RSBele = 670
+  WTBele = 595.75
+  HGBele = 547
+  HCBele = 585.75
   LDBele = 310
+  BWBele = 412.62
   WBJele = 52
+  PNJele = 33
   ALBele = 85.25
-  DSYele = 15
+  LNJele = 15
   
   SG3 <- reactive({
     if(input$product3 == 'GAS') {SG3 = 0.73}
@@ -596,29 +601,132 @@ server <- function(input,output) {
     return(SG3)
   })
   
+  m3 <- reactive({
+    if(input$product3 == 'GAS') {m3 = 0.086862}
+    if(input$product3 == 'OIL') {m3 = 0.090457}
+    return(m3)
+  })
+  # relook below
+  Amile3 <- reactive({
+    if(input$Astation3 == 'GBN') {Amile3 = GBNmile}
+    if(input$Astation3 == 'LDB') {Amile3 = LDBmile}
+    if(input$Astation3 == 'WBJ') {Amile3 = WBJmile}
+    if(input$Astation3 == 'ALB') {Amile3 = ALBmile}
+    return(Amile3)
+  })
   
+  Bmile3 <- reactive({
+    if(input$Bstation3 == 'WTB') {Bmile3 = WTBmile}
+    if(input$Bstation3 == 'BWB') {Bmile3 = BWBmile}
+    if(input$Bstation3 == 'PNJ') {Bmile3 = PNJmile}
+    if(input$Bstation3 == 'ALB') {Bmile3 = ALBmile}
+    return(Bmile3)
+  })
   
+  Cmile3 <- reactive({
+    if(input$Cstation3 == 'WTB') {Cmile3 = WTBmile}
+    if(input$Cstation3 == 'HGB') {Cmile3 = HGBmile}
+    if(input$Cstation3 == 'HCB') {Cmile3 = HCBmile}
+    if(input$Cstation3 == 'BWB') {Cmile3 = BWBmile}
+    if(input$Cstation3 == 'WBJ') {Cmile3 = WBJmile}
+    if(input$Bstation3 == 'ALB') {Cmile3 = ALBmile}
+    if(input$Bstation3 == 'LNJ') {Cmile3 = LNJmile}
+    return(Cmile3)
+  })
   
+  Aele3 <- reactive({
+    if(input$Astation3 == 'GBN') {Aele3 = GBNele}
+    if(input$Astation3 == 'LDB') {Aele3 = LDBele}
+    if(input$Astation3 == 'WBJ') {Aele3 = WBJele}
+    if(input$Astation3 == 'ALB') {Aele3 = ALBele}
+    return(Aele3)
+  })
   
+  Bele3 <- reactive({
+    if(input$Bstation3 == 'WTB') {Bele3 = WTBele}
+    if(input$Bstation3 == 'BWB') {Bele3 = BWBele}
+    if(input$Bstation3 == 'PNJ') {Bele3 = PNJele}
+    if(input$Bstation3 == 'ALB') {Bele3 = ALBele}
+    return(Bele3)
+  })
   
+  Cele3 <- reactive({
+    if(input$Cstation3 == 'WTB') {Cele3 = WTBele}
+    if(input$Cstation3 == 'HGB') {Cele3 = HGBele}
+    if(input$Cstation3 == 'HCB') {Cele3 = HCBele}
+    if(input$Cstation3 == 'BWB') {Cele3 = BWBele}
+    if(input$Cstation3 == 'WBJ') {Cele3 = WBJele}
+    if(input$Bstation3 == 'ALB') {Cele3 = ALBele}
+    if(input$Bstation3 == 'LNJ') {Cele3 = LNJele}
+    return(Cele3)
+  })
   
+  xo3 <- reactive({
+    if (input$line3 == 3 && input$Astation3 == 'GBN') {xo3 = 100}
+    else {xo3 = 41}
+    return(xo3)
+  })
   
+  xo4 <- reactive({
+    if(input$line3 == 4) {xo4 = 56}
+    else {xo4 = xo3()}
+    return(xo4)
+  })
   
+  x3 <- reactive({
+    if (input$Astation3 == 'GBN') {x3 = 0.11075}
+    else {x3 = 0.15255}
+    return(x3)
+  })
   
+  y3 <- reactive({
+    if (input$product3 == 'GAS') {y3 = 0.0079 }
+    else {y3 = 0.0067}
+    return(y3)
+  })
   
+  #IMPORTANT just pasted from l1 and 2
+  #calculations
+  dispin3 = reactive(input$discharge3*y3()) #discharge pressure in inches
+  altpin3 = reactive(input$alternate3*y3()) #alternate pressure in inches
+  sucpin3 = reactive(input$suction3*y3()) #suction pressure in inches
+  mpdiff3 = reactive(Cmile3() - Amile3()) # mileage difference C-A
+  elediff3 = reactive(Aele3() - Cele3()) # elevation difference A-C
+  mpdiffin3 = reactive(mpdiff3()*x3()) #mileage diff in inches
+  elediffin3 = reactive(elediff3()*z) #elevation diff in inches
+  #alternates 
+  mpdiffalt3 = reactive(Cmile3() - Bmile3()) # mileage difference C-B
+  elediffalt3 = reactive(Bele3() - Cele3()) # mileage difference B-C
   
+  # mileage diff in inches
+  mpdiffaltin3 = reactive(mpdiffalt3()*x3())
+
+  elediffaltin3 = reactive(elediffalt3()*z) #elevation diff in inches
+  #angles (custom)
+  angleac3 = reactive(
+    atan(mpdiffin3()/(elediffin3()+dispin3()-sucpin3()))
+  ) # calculates angle from A to C
+  anglebc3 = reactive(
+    atan(mpdiffaltin3()/(elediffaltin3()+altpin3()-sucpin3()))
+  )
+  anglemax3 = reactive(max(angleac3(),anglebc3()))
   
+  # DR and rate and PPM 
+  ratein3 <- reactive({
+    if (input$product3 == 'GAS'){ratein3 = input$rate3^2*0.003+0.0309*input$rate3-0.152}
+    else {ratein3 = input$rate3^2*0.0038+0.044*input$rate3-0.1747}
+    return(ratein3)
+  })
   
-  
-  
+  xin3 = reactive(tan(anglemax3())*ratein3())
+  xmile3 = reactive(xin3()/x3())
+  DR3 = reactive((1-xo4()/xmile3()+0.0012*mpdiff3())*100)
+  PPM3 = reactive(m3()*DR3()/((SGDRA/SG3())-b*SGDRA/SG3()*DR3()))
+
   output$PPM_Results3 <- renderPrint('PPM results provided below!')
-  output$stats3 <- renderPrint(PPM())
-  output$LOL3 <- renderPrint(SG3())
-  
-  
-  
+  output$stats3 <- renderPrint(PPM3())
+  output$LOL3 <- renderPrint("Have a Great Day")
 }
 shinyApp(ui = ui, server = server)
 
 #idea: show input parameters visualizations as check
-#test baton rouge and atlanta bypass L1
