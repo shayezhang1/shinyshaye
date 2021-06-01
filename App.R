@@ -13,7 +13,7 @@ ui <- fluidPage(
                
   sliderInput(inputId = "rate",
               label = "Drag to a target rate in thousands BPH",
-              value = 58, min = 1, max= 80),
+              value = 58, min = 20, max= 80, step = 0.5),
   
   selectInput("line",
               "Select a Line",
@@ -136,7 +136,7 @@ ui <- fluidPage(
 tabPanel("Line 3 & 4",
   sliderInput(inputId = "rate3",
       label = "Drag to a target rate in thousands BPH",
-      value = 25, min = 1, max= 50),       
+      value = 25, min = 10, max= 50, step = 0.5),       
   selectInput("line3",
               "Select a Line",
               c(
@@ -195,12 +195,163 @@ tabPanel("Line 3 & 4",
   verbatimTextOutput("PPM_Results3"),
   verbatimTextOutput("stats3"),
   verbatimTextOutput("LOL3")
+         ),
+
+# Stublines Input (Not set to do bypasses across diameters yet)
+tabPanel("Stublines", 
+  sliderInput(inputId = "ratestub",
+    label = "Drag to a target rate in thousands BPH",
+    value = 5, min = 1, max= 10, step = 0.1),     
+  
+  selectInput("linestub",
+                     "Select a Line",
+                     c(
+                       "Line 15" = 15,
+                       "Line 17" = 17,
+                       "Line 18" = 18,
+                       "Line 19" = 19)
+         ),       
+  selectInput("productstub",
+              "Select a Product",
+              c(
+                "Gas" = "GAS",
+                "Oil" = "OIL")
+  ), 
+  conditionalPanel(
+    condition = "input.linestub =='15'",
+    selectInput("Astation15",
+                "Select Upstream Station",
+                choices = list(
+                  "Atlanta" = "ATJ"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='15'",
+    selectInput("Bstation15",
+                "Select Bypassing Station",
+                choices = list(
+                  "Atlanta" = "ATJ"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='15'",
+    selectInput("Cstation15",
+                "Select Downstream Station",
+                choices = list(
+                  "Doraville" = "DVD"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='17'",
+    selectInput("Astation17",
+                "Select Upstream Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Macon" = "MNB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='17'",
+    selectInput("Bstation17",
+                "Select Bypassing Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Macon" = "MNB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='17'",
+    selectInput("Cstation17",
+                "Select Downstream Station",
+                choices = list(
+                  "Macon" = "MNB",
+                  "Bainbridge" = "BBD"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='18'",
+    selectInput("Astation18",
+                "Select Upstream Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Rome" = "RMB",
+                  "Sweetwater" = "SWI"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='18'",
+    selectInput("Bstation18",
+                "Select Bypassing Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Rome" = "RMB",
+                  "Chattanooga" = "CAV",
+                  "Sweetwater" = "SWI"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='18'",
+    selectInput("Cstation18",
+                "Select Downstream Station",
+                choices = list(
+                  "Rome" = "RMB",
+                  "Chattanooga" = "CAV",
+                  "Sweetwater" = "SWI",
+                  "Knoxville" = "KVE"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='19'",
+    selectInput("Astation19",
+                "Select Upstream Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Rome" = "RMB",
+                  "Signal Mountain" = "SMB",
+                  "Coalmont" = "COA",
+                  "Murfreesboro" = "MUB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='19'",
+    selectInput("Bstation19",
+                "Select Bypassing Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Rome" = "RMB",
+                  "Chattanooga" = "CAJ",
+                  "Signal Mountain" = "SMB",
+                  "Coalmont" = "COA",
+                  "Murfreesboro" = "MUB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='19'",
+    selectInput("Cstation19",
+                "Select Downstream Station",
+                choices = list(
+                  "Rome" = "RMB",
+                  "Chattanooga" = "CAJ",
+                  "Signal Mountain" = "SMB",
+                  "Coalmont" = "COA",
+                  "Murfreesboro" = "MUB",
+                  "Nashville" = "NVD"))
+  ),
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  numericInput(inputId = "dischargestub",
+               label = "Enter a discharge pressure in psi",
+               value = 530, min = 1, max = 1000),
+  numericInput(inputId = "alternatestub",
+               label = "Enter an alternate pressure in psi",
+               value = 530, min = 1, max = 1000),
+  numericInput(inputId = "suctionstub",
+               label = "Enter a suction pressure in psi",
+               value = 40, min = 1, max = 1000),
+  
+  verbatimTextOutput("PPM_Resultstub"),
+  verbatimTextOutput("statstub"),
+  verbatimTextOutput("LOLstub")
   
          
-         
-         
-         ),
-tabPanel("Stublines", p("yo"))
+         )
 ),
   ))
 
@@ -606,7 +757,7 @@ server <- function(input,output) {
     if(input$product3 == 'OIL') {m3 = 0.090457}
     return(m3)
   })
-  # relook below
+
   Amile3 <- reactive({
     if(input$Astation3 == 'GBN') {Amile3 = GBNmile}
     if(input$Astation3 == 'LDB') {Amile3 = LDBmile}
@@ -685,7 +836,6 @@ server <- function(input,output) {
     return(y3)
   })
   
-  #IMPORTANT just pasted from l1 and 2
   #calculations
   dispin3 = reactive(input$discharge3*y3()) #discharge pressure in inches
   altpin3 = reactive(input$alternate3*y3()) #alternate pressure in inches
@@ -726,7 +876,243 @@ server <- function(input,output) {
   output$PPM_Results3 <- renderPrint('PPM results provided below!')
   output$stats3 <- renderPrint(PPM3())
   output$LOL3 <- renderPrint("Have a Great Day")
+  
+  #STUB LINES START HERE
+  
+  #mileage data
+  ATJmile = 0
+  DVDmile = 24.14
+  MNBmile = 94.38
+  BBDmile = 253.93
+  RMBmile = 48.98
+  CAVmile = 100.75
+  SWImile = 164.04
+  KVEmile = 198.44
+  CAJmile = 92.26
+  SMBmile = 112.85
+  COAmile = 139.94 #CLB is the symbol but it has been used previously
+  MUBmile = 197.08
+  NVDmile = 239.71
+  
+  #elevation data
+  ATJele = 954.75
+  DVDele = 1022
+  MNBele = 437
+  BBDele = 111
+  RMBele = 649.09
+  CAVele = 686.01
+  SWIele = 1007
+  KVEele = 949
+  CAJele = 686.01
+  SMBele = 672
+  COAele = 1989
+  MUBele = 627
+  NVDele = 528
+  
+  SGstub <- reactive({
+    if(input$productstub == 'GAS') {SGstub = 0.73}
+    if(input$productstub == 'OIL') {SGstub = 0.85}
+    return(SGstub)
+  })
+  
+  mstub <- reactive({
+    if(input$productstub == 'GAS') {mstub = 0.086862}
+    if(input$productstub == 'OIL') {mstub = 0.090457}
+    return(mstub)
+  })
+  
+  Amilestub <- reactive({
+    if(input$linestub =='15' && input$Astation15 == 'ATJ') {Amilestub = ATJmile}
+    if(input$linestub =='17' && input$Astation17 == 'ATJ') {Amilestub = ATJmile}
+    if(input$linestub =='17' && input$Astation17 == 'MNB') {Amilestub = MNBmile}
+    if(input$linestub =='18' && input$Astation18 == 'ATJ') {Amilestub = ATJmile}
+    if(input$linestub =='18' && input$Astation18 == 'RMB') {Amilestub = RMBmile}
+    if(input$linestub =='18' && input$Astation18 == 'SWI') {Amilestub = SWImile}
+    if(input$linestub =='19' && input$Astation19 == 'ATJ') {Amilestub = ATJmile}
+    if(input$linestub =='19' && input$Astation19 == 'RMB') {Amilestub = RMBmile}
+    if(input$linestub =='19' && input$Astation19 == 'SMB') {Amilestub = SMBmile}
+    if(input$linestub =='19' && input$Astation19 == 'COA') {Amilestub = COAmile}
+    if(input$linestub =='19' && input$Astation19 == 'MUB') {Amilestub = MUBmile}
+    return(Amilestub)
+  })
+
+  Bmilestub <- reactive({
+    if(input$linestub =='15' && input$Bstation15 == 'ATJ') {Bmilestub = ATJmile}
+    if(input$linestub =='17' && input$Bstation17 == 'ATJ') {Bmilestub = ATJmile}
+    if(input$linestub =='17' && input$Bstation17 == 'MNB') {Bmilestub = MNBmile}
+    if(input$linestub =='18' && input$Bstation18 == 'ATJ') {Bmilestub = ATJmile}
+    if(input$linestub =='18' && input$Bstation18 == 'RMB') {Bmilestub = RMBmile}
+    if(input$linestub =='18' && input$Bstation18 == 'CAV') {Bmilestub = CAVmile}
+    if(input$linestub =='18' && input$Bstation18 == 'SWI') {Bmilestub = SWImile}
+    if(input$linestub =='19' && input$Bstation19 == 'ATJ') {Bmilestub = ATJmile}
+    if(input$linestub =='19' && input$Bstation19 == 'RMB') {Bmilestub = RMBmile}
+    if(input$linestub =='19' && input$Bstation19 == 'CAJ') {Bmilestub = CAJmile}
+    if(input$linestub =='19' && input$Bstation19 == 'SMB') {Bmilestub = SMBmile}
+    if(input$linestub =='19' && input$Bstation19 == 'COA') {Bmilestub = COAmile}
+    if(input$linestub =='19' && input$Bstation19 == 'MUB') {Bmilestub = MUBmile}
+    return(Bmilestub)
+  })
+  
+  Cmilestub <- reactive({
+    if(input$linestub =='15' && input$Cstation15 == 'DVD') {Cmilestub = DVDmile}
+    if(input$linestub =='17' && input$Cstation17 == 'BBD') {Cmilestub = BBDmile}
+    if(input$linestub =='17' && input$Cstation17 == 'MNB') {Cmilestub = MNBmile}
+    if(input$linestub =='18' && input$Cstation18 == 'RMB') {Cmilestub = RMBmile}
+    if(input$linestub =='18' && input$Cstation18 == 'CAV') {Cmilestub = CAVmile}
+    if(input$linestub =='18' && input$Cstation18 == 'SWI') {Cmilestub = SWImile}
+    if(input$linestub =='18' && input$Cstation18 == 'KVE') {Cmilestub = KVEmile}
+    if(input$linestub =='19' && input$Cstation19 == 'ATJ') {Cmilestub = ATJmile}
+    if(input$linestub =='19' && input$Cstation19 == 'RMB') {Cmilestub = RMBmile}
+    if(input$linestub =='19' && input$Cstation19 == 'CAJ') {Cmilestub = CAJmile}
+    if(input$linestub =='19' && input$Cstation19 == 'SMB') {Cmilestub = SMBmile}
+    if(input$linestub =='19' && input$Cstation19 == 'COA') {Cmilestub = COAmile}
+    if(input$linestub =='19' && input$Cstation19 == 'MUB') {Cmilestub = MUBmile}
+    if(input$linestub =='19' && input$Cstation19 == 'NVD') {Cmilestub = NVDmile}
+    return(Cmilestub)
+  })
+  
+  Aelestub <- reactive({
+    if(input$linestub =='15' && input$Astation15 == 'ATJ') {Aelestub = ATJele}
+    if(input$linestub =='17' && input$Astation17 == 'ATJ') {Aelestub = ATJele}
+    if(input$linestub =='17' && input$Astation17 == 'MNB') {Aelestub = MNBele}
+    if(input$linestub =='18' && input$Astation18 == 'ATJ') {Aelestub = ATJele}
+    if(input$linestub =='18' && input$Astation18 == 'RMB') {Aelestub = RMBele}
+    if(input$linestub =='18' && input$Astation18 == 'SWI') {Aelestub = SWIele}
+    if(input$linestub =='19' && input$Astation19 == 'ATJ') {Aelestub = ATJele}
+    if(input$linestub =='19' && input$Astation19 == 'RMB') {Aelestub = RMBele}
+    if(input$linestub =='19' && input$Astation19 == 'SMB') {Aelestub = SMBele}
+    if(input$linestub =='19' && input$Astation19 == 'COA') {Aelestub = COAele}
+    if(input$linestub =='19' && input$Astation19 == 'MUB') {Aelestub = MUBele}
+    return(Aelestub)
+  })
+  
+  Belestub <- reactive({
+    if(input$linestub =='15' && input$Bstation15 == 'ATJ') {Belestub = ATJele}
+    if(input$linestub =='17' && input$Bstation17 == 'ATJ') {Belestub = ATJele}
+    if(input$linestub =='17' && input$Bstation17 == 'MNB') {Belestub = MNBele}
+    if(input$linestub =='18' && input$Bstation18 == 'ATJ') {Belestub = ATJele}
+    if(input$linestub =='18' && input$Bstation18 == 'RMB') {Belestub = RMBele}
+    if(input$linestub =='18' && input$Bstation18 == 'CAV') {Belestub = CAVele}
+    if(input$linestub =='18' && input$Bstation18 == 'SWI') {Belestub = SWIele}
+    if(input$linestub =='19' && input$Bstation19 == 'ATJ') {Belestub = ATJele}
+    if(input$linestub =='19' && input$Bstation19 == 'RMB') {Belestub = RMBele}
+    if(input$linestub =='19' && input$Bstation19 == 'CAJ') {Belestub = CAJele}
+    if(input$linestub =='19' && input$Bstation19 == 'SMB') {Belestub = SMBele}
+    if(input$linestub =='19' && input$Bstation19 == 'COA') {Belestub = COAele}
+    if(input$linestub =='19' && input$Bstation19 == 'MUB') {Belestub = MUBele}
+    return(Belestub)
+  })
+  
+  Celestub <- reactive({
+    if(input$linestub =='15' && input$Cstation15 == 'DVD') {Celestub = DVDele}
+    if(input$linestub =='17' && input$Cstation17 == 'MNB') {Celestub = MNBele}
+    if(input$linestub =='17' && input$Cstation17 == 'BBD') {Celestub = BBDele}
+    if(input$linestub =='18' && input$Cstation18 == 'RMB') {Celestub = RMBele}
+    if(input$linestub =='18' && input$Cstation18 == 'CAV') {Celestub = CAVele}
+    if(input$linestub =='18' && input$Cstation18 == 'SWI') {Celestub = SWIele}
+    if(input$linestub =='18' && input$Cstation18 == 'KVE') {Celestub = KVEele}
+    if(input$linestub =='19' && input$Cstation19 == 'ATJ') {Celestub = ATJele}
+    if(input$linestub =='19' && input$Cstation19 == 'RMB') {Celestub = RMBele}
+    if(input$linestub =='19' && input$Cstation19 == 'CAJ') {Celestub = CAJele}
+    if(input$linestub =='19' && input$Cstation19 == 'SMB') {Celestub = SMBele}
+    if(input$linestub =='19' && input$Cstation19 == 'COA') {Celestub = COAele}
+    if(input$linestub =='19' && input$Cstation19 == 'MUB') {Celestub = MUBele}
+    if(input$linestub =='19' && input$Cstation19 == 'NVD') {Celestub = NVDele}
+    return(Celestub)
+  })
+  
+  xostub <- reactive({
+    if(input$linestub == '15') {xostub = 50}
+    if(input$linestub == '17') {xostub = 50}
+    if(input$linestub =='18' && input$Astation18 == 'ATJ') {xostub = 75}
+    if(input$linestub =='18' && input$Astation18 == 'RMB') {xostub = 75}
+    if(input$linestub =='18' && input$Astation18 == 'SWI') {xostub = 50}
+    if(input$linestub == '19') {xostub = 50}
+    return(xostub)
+  })
+  
+  xstub <- reactive({
+    if(input$linestub == '15') {xstub = 0.2}
+    if(input$linestub == '17') {xstub = 0.186}
+    if(input$linestub == '18' && input$Astation18 == 'ATJ') {xstub = 0.2}
+    if(input$linestub == '18' && input$Astation18 == 'RMB') {xstub = 0.2}
+    if(input$linestub == '18' && input$Astation18 == 'SWI') {xstub = 0.233}
+    if(input$linestub == '19') {xstub = 0.2}
+    return(xstub)
+  })
+  
+  ystub <- reactive({
+    if(input$productstub == 'GAS') {ystub = 0.0079}
+    if(input$productstub == 'OIL') {ystub = 0.0067}
+    return(ystub)
+  })
+
+  #stubline calculations
+  dispinstub = reactive(input$dischargestub*ystub()) #discharge pressure in inches
+  altpinstub = reactive(input$alternatestub*ystub()) #alternate pressure in inches
+  sucpinstub = reactive(input$suctionstub*ystub()) #suction pressure in inches
+  mpdiffstub = reactive(Cmilestub() - Amilestub()) # mileage difference C-A
+  elediffstub = reactive(Aelestub() - Celestub()) # elevation difference A-C
+  mpdiffinstub = reactive(mpdiffstub()*xstub()) #mileage diff in inches
+  elediffinstub = reactive(elediffstub()*z) #elevation diff in inches
+  
+  #alternates 
+  mpdiffaltstub = reactive(Cmilestub() - Bmilestub()) # mileage difference C-B
+  elediffaltstub = reactive(Belestub() - Celestub()) # mileage difference B-C
+  
+  # mileage diff in inches
+  mpdiffaltinstub = reactive(mpdiffaltstub()*xstub())
+  
+  elediffaltinstub = reactive(elediffaltstub()*z) #elevation diff in inches
+  #angles (custom)
+  angleacstub = reactive(
+    atan(mpdiffinstub()/(elediffinstub()+dispinstub()-sucpinstub()))
+  ) # calculates angle from A to C
+  anglebcstub = reactive(
+    atan(mpdiffaltinstub()/(elediffaltinstub()+altpinstub()-sucpinstub()))
+  )
+  anglemaxstub = reactive(max(angleacstub(),anglebcstub()))
+  
+  # DR and rate and PPM 
+  rateinstub <- reactive({
+    if (input$linestub == '15'){rateinstub = input$ratestub^2*0.629762+0.5137*input$ratestub-0.15616}
+    if (input$linestub == '17' && input$productstub == "GAS") {rateinstub = input$ratestub^2*0.36803+0.37898*input$ratestub-0.1365}
+    if (input$linestub == '17' && input$productstub == "OIL") {rateinstub = input$ratestub^2*0.46682+0.60438*input$ratestub-0.219}
+    if (input$linestub == '18' && input$productstub == "GAS" && input$Astation18 == 'ATJ') {rateinstub = input$ratestub^2*0.1797+0.163909*input$ratestub-0.05033}
+    if (input$linestub == '18' && input$productstub == "GAS" && input$Astation18 == 'RMB') {rateinstub = input$ratestub^2*0.1797+0.163909*input$ratestub-0.05033}
+    if (input$linestub == '18' && input$productstub == "GAS" && input$Astation18 == 'SWI') {rateinstub = input$ratestub^2*0.8793+0.72488*input$ratestub-0.23018}
+    if (input$linestub == '18' && input$productstub == "OIL" && input$Astation18 == 'ATJ') {rateinstub = input$ratestub^2*0.231515+0.28*input$ratestub-0.11333}
+    if (input$linestub == '18' && input$productstub == "OIL" && input$Astation18 == 'RMB') {rateinstub = input$ratestub^2*0.231515+0.28*input$ratestub-0.11333}
+    if (input$linestub == '18' && input$productstub == "OIL" && input$Astation18 == 'SWI') {rateinstub = input$ratestub^2*1.18857+0.9497*input$ratestub-0.252}
+    if (input$linestub == '19' && input$productstub == "GAS" && input$Astation19 == 'ATJ') {rateinstub = input$ratestub^2*0.35344655+0.394*input$ratestub-0.158636}
+    if (input$linestub == '19' && input$productstub == "GAS" && input$Astation19 == 'RMB') {rateinstub = input$ratestub^2*0.35344655+0.394*input$ratestub-0.158636}
+    if (input$linestub == '19' && input$productstub == "GAS" && input$Astation19 == 'COA') {rateinstub = input$ratestub^2*0.8807+0.718*input$ratestub-0.22375}
+    if (input$linestub == '19' && input$productstub == "GAS" && input$Astation19 == 'SMB') {rateinstub = input$ratestub^2*0.8807+0.718*input$ratestub-0.22375}
+    if (input$linestub == '19' && input$productstub == "GAS" && input$Astation19 == 'MUB') {rateinstub = input$ratestub^2*0.8807+0.718*input$ratestub-0.22375}
+    if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'ATJ') {rateinstub = input$ratestub^2*0.46848+0.54685*input$ratestub-0.184}
+    if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'RMB') {rateinstub = input$ratestub^2*0.46848+0.54685*input$ratestub-0.184}
+    if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'COA') {rateinstub = input$ratestub^2*1.19214+0.92807*input$ratestub-0.221}
+    if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'SMB') {rateinstub = input$ratestub^2*1.19214+0.92807*input$ratestub-0.221}
+    if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'MUB') {rateinstub = input$ratestub^2*1.19214+0.92807*input$ratestub-0.221}
+    return(rateinstub)
+  })
+  
+  xinstub = reactive(tan(anglemaxstub())*rateinstub())
+  xmilestub = reactive(xinstub()/xstub())
+  DRstub = reactive((1-xostub()/xmilestub()+0.0012*mpdiffstub())*100)
+  PPMstub = reactive(mstub()*DRstub()/((SGDRA/SGstub())-b*SGDRA/SGstub()*DRstub()))
+  
+  output$PPM_Resultstub <- renderPrint('PPM results provided below!')
+  output$statstub <- renderPrint(PPMstub())
+  output$LOLstub <- renderPrint("Have a Great Day")
+  
+  
+  
+  
 }
 shinyApp(ui = ui, server = server)
 
 #idea: show input parameters visualizations as check
+#Line 15: Gas only
+#Line 19: Gas Only
+#stublines not set to do bypasses across different diamters
