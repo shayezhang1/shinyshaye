@@ -2,14 +2,14 @@
 #library(shiny)
 #install.packages("shinythemes") and library
 
-ui <- fluidPage(
-  headerPanel('Shiny Station Bypass DRA Tool'),
+ui <- fluidPage( theme = shinytheme("united"),
+  headerPanel('Station Bypass DRA Tool'),
   
   mainPanel(
     tabsetPanel(type = "tabs",
                 tabPanel("Line 1 & 2", 
 
-  sidebarPanel(width = 8,
+  sidebarPanel(width = 7,
                
   sliderInput(inputId = "rate",
               label = "Drag to a target rate in thousands BPH",
@@ -124,16 +124,17 @@ ui <- fluidPage(
                label = "Enter a suction pressure in psi",
                value = 40, min = 1, max = 1000),
   
-  verbatimTextOutput("PPM_Results"),
-  verbatimTextOutput("stats"),
-  verbatimTextOutput("LOL")
   
   
-)
+),
+body <- dashboardBody(h2("Your PPM Results", width = 15),
+verbatimTextOutput("stats"))
+
 ),
 
 #LINE 3 and LINE 4 INPUT
 tabPanel("Line 3 & 4",
+         sidebarPanel(width = 7,
   sliderInput(inputId = "rate3",
       label = "Drag to a target rate in thousands BPH",
       value = 25, min = 10, max= 50, step = 0.5),       
@@ -192,13 +193,16 @@ tabPanel("Line 3 & 4",
                label = "Enter a suction pressure in psi",
                value = 40, min = 1, max = 1000),
   
-  verbatimTextOutput("PPM_Results3"),
-  verbatimTextOutput("stats3"),
-  verbatimTextOutput("LOL3")
-         ),
+),
+  
+  body <- dashboardBody(h2("Your PPM Results", width = 15),
+                        verbatimTextOutput("stats3"))       
+  
+  ),
 
 # Stublines Input (Not set to do bypasses across diameters yet)
 tabPanel("Stublines", 
+         sidebarPanel(width = 7,
   sliderInput(inputId = "ratestub",
     label = "Drag to a target rate in thousands BPH",
     value = 5, min = 1, max= 10, step = 0.1),     
@@ -209,7 +213,8 @@ tabPanel("Stublines",
                        "Line 15" = 15,
                        "Line 17" = 17,
                        "Line 18" = 18,
-                       "Line 19" = 19)
+                       "Line 19" = 19,
+                       "Line 20" = 20)
          ),       
   selectInput("productstub",
               "Select a Product",
@@ -326,15 +331,38 @@ tabPanel("Stublines",
                   "Murfreesboro" = "MUB",
                   "Nashville" = "NVD"))
   ),
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  conditionalPanel(
+    condition = "input.linestub =='20'",
+    selectInput("Astation20",
+                "Select Upstream Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Signal Mountain" = "SMB",
+                  "Coalmont" = "COA",
+                  "Murfreesboro" = "MUB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='20'",
+    selectInput("Bstation20",
+                "Select Bypassing Station",
+                choices = list(
+                  "Atlanta" = "ATJ",
+                  "Chattanooga" = "CAJ",
+                  "Signal Mountain" = "SMB",
+                  "Coalmont" = "COA",
+                  "Murfreesboro" = "MUB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='20'",
+    selectInput("Cstation20",
+                "Select Downstream Station",
+                choices = list(
+                  "Chattanooga" = "CAJ",
+                  "Signal Mountain" = "SMB",
+                  "Coalmont" = "COA",
+                  "Murfreesboro" = "MUB",
+                  "Nashville" = "NVD"))
+  ),
   
   numericInput(inputId = "dischargestub",
                label = "Enter a discharge pressure in psi",
@@ -345,13 +373,53 @@ tabPanel("Stublines",
   numericInput(inputId = "suctionstub",
                label = "Enter a suction pressure in psi",
                value = 40, min = 1, max = 1000),
+         ),
   
-  verbatimTextOutput("PPM_Resultstub"),
-  verbatimTextOutput("statstub"),
-  verbatimTextOutput("LOLstub")
-  
+  body <- dashboardBody(h2("Your PPM Results", width = 15),
+                        verbatimTextOutput("statstub"))
+         ),
+
+tabPanel("How Tool Works"),
+tabPanel("Old Process",
+    body <- dashboardBody(br(),
+      strong("1 - Draw Pressure Gradient on the Line Specific Nomograph"), tags$br(), 
+                          "For station bypasses:", tags$br(),
+                          "step 1.1) Mark the upstream station discharge pressure",tags$br(),
+                          "step 1.2) Mark the downstream station suction pressure", tags$br(),
+                          "step 1.3) Draw by hand on PDF or printout a straight gradient line between them",tags$br(), 
+                          "step 1.4) Ensure gradient is below bypassing station HULP",tags$br(),
+                          "step 1.5) Spot check to make sure you are using the correct product scale and draw a straight line to station's milepost (or kero product scale)",tags$br(), 
+                          "F = Fuel Oil; K = Kero; G = Gasoline",tags$br(),
+                          img(src = "m1.JPG", height = 400, width = 330),tags$br(),
+                br(),
+                          strong("2 - Determine Xo and No DRA Rate"), tags$br(),
+                          "step 2.1) Copy and paste pressure gradient line and line it up to focal point dependent on product type",tags$br(),
+                          "step 2.2) Determine the No DRA Rate by looking at where the gradient line crosses with the rate scale",tags$br(),
+                          "step 2.3) Draw a horizontal line from the rate scale to the corresponding focal point to obtain Xo. This is your factor for later calculations. Example Xo=100",tags$br(),
+                          img(src = "m2.JPG", height = 400, width = 430), tags$br(),
+                br(),
+                          strong("3 - Determine X"), tags$br(),
+                          "step 3.1) Move pressure gradient line to desired line flow rate. Example: 36,000 BPH",tags$br(),
+                          "step 3.2) Calculate new distance to corresponding flow rate", tags$br(),
+                          "step 3.3) Check to ensure the scale on the x axis corresponds to the correct diamter and where Xo was measured", tags$br(),
+                          img(src = "m3.JPG", height = 400, width = 470), tags$br(),
+                br(),
+                          strong("4 - Calculate %DR and use Performance Curve to find PPM"), tags$br(),
+                          "step 4.1) Use formula for %DR", tags$br(),
+                          div("%DR = (1 - Xo/X) + 0.0012*(Distance DRA Travels)", style = "color:blue"), tags$br(),
+                          div("%DR = (1 - 100/144) + 0.0012*(318.88 - 261.11)*100", style = "color:blue"), tags$br(),
+                          div("%DR = 37.5", style = "color:blue"), tags$br(),
+                          "step 4.2) Use DRA performance curve in corresponding product to find corresponding PPM. For Oil Performance Curve:", tags$br(),
+                          img(src = "m4.JPG", height = 300, width = 470), tags$br(),
+                          "For Gasoline Performance Curve:", tags$br(),
+                          img(src = "m5.JPG", height = 300, width = 470), tags$br(),
+                          "Congrats, you've just obtained one single PPM solution after all this effort. So maybe it's time to..", tags$br(),
+                          img(src = "automate.JPG", height = 170, width = 250), tags$br(),
          
-         )
+         br(),
+         ))
+
+
 ),
   ))
 
@@ -780,8 +848,8 @@ server <- function(input,output) {
     if(input$Cstation3 == 'HCB') {Cmile3 = HCBmile}
     if(input$Cstation3 == 'BWB') {Cmile3 = BWBmile}
     if(input$Cstation3 == 'WBJ') {Cmile3 = WBJmile}
-    if(input$Bstation3 == 'ALB') {Cmile3 = ALBmile}
-    if(input$Bstation3 == 'LNJ') {Cmile3 = LNJmile}
+    if(input$Cstation3 == 'ALB') {Cmile3 = ALBmile}
+    if(input$Cstation3 == 'LNJ') {Cmile3 = LNJmile}
     return(Cmile3)
   })
   
@@ -807,8 +875,8 @@ server <- function(input,output) {
     if(input$Cstation3 == 'HCB') {Cele3 = HCBele}
     if(input$Cstation3 == 'BWB') {Cele3 = BWBele}
     if(input$Cstation3 == 'WBJ') {Cele3 = WBJele}
-    if(input$Bstation3 == 'ALB') {Cele3 = ALBele}
-    if(input$Bstation3 == 'LNJ') {Cele3 = LNJele}
+    if(input$Cstation3 == 'ALB') {Cele3 = ALBele}
+    if(input$Cstation3 == 'LNJ') {Cele3 = LNJele}
     return(Cele3)
   })
   
@@ -933,6 +1001,10 @@ server <- function(input,output) {
     if(input$linestub =='19' && input$Astation19 == 'SMB') {Amilestub = SMBmile}
     if(input$linestub =='19' && input$Astation19 == 'COA') {Amilestub = COAmile}
     if(input$linestub =='19' && input$Astation19 == 'MUB') {Amilestub = MUBmile}
+    if(input$linestub =='20' && input$Astation20 == 'ATJ') {Amilestub = ATJmile}
+    if(input$linestub =='20' && input$Astation20 == 'SMB') {Amilestub = SMBmile}
+    if(input$linestub =='20' && input$Astation20 == 'COA') {Amilestub = COAmile}
+    if(input$linestub =='20' && input$Astation20 == 'MUB') {Amilestub = MUBmile}
     return(Amilestub)
   })
 
@@ -950,6 +1022,11 @@ server <- function(input,output) {
     if(input$linestub =='19' && input$Bstation19 == 'SMB') {Bmilestub = SMBmile}
     if(input$linestub =='19' && input$Bstation19 == 'COA') {Bmilestub = COAmile}
     if(input$linestub =='19' && input$Bstation19 == 'MUB') {Bmilestub = MUBmile}
+    if(input$linestub =='20' && input$Bstation20 == 'ATJ') {Bmilestub = ATJmile}
+    if(input$linestub =='20' && input$Bstation20 == 'CAJ') {Bmilestub = CAJmile}
+    if(input$linestub =='20' && input$Bstation20 == 'SMB') {Bmilestub = SMBmile}
+    if(input$linestub =='20' && input$Bstation20 == 'COA') {Bmilestub = COAmile}
+    if(input$linestub =='20' && input$Bstation20 == 'MUB') {Bmilestub = MUBmile}
     return(Bmilestub)
   })
   
@@ -961,13 +1038,17 @@ server <- function(input,output) {
     if(input$linestub =='18' && input$Cstation18 == 'CAV') {Cmilestub = CAVmile}
     if(input$linestub =='18' && input$Cstation18 == 'SWI') {Cmilestub = SWImile}
     if(input$linestub =='18' && input$Cstation18 == 'KVE') {Cmilestub = KVEmile}
-    if(input$linestub =='19' && input$Cstation19 == 'ATJ') {Cmilestub = ATJmile}
     if(input$linestub =='19' && input$Cstation19 == 'RMB') {Cmilestub = RMBmile}
     if(input$linestub =='19' && input$Cstation19 == 'CAJ') {Cmilestub = CAJmile}
     if(input$linestub =='19' && input$Cstation19 == 'SMB') {Cmilestub = SMBmile}
     if(input$linestub =='19' && input$Cstation19 == 'COA') {Cmilestub = COAmile}
     if(input$linestub =='19' && input$Cstation19 == 'MUB') {Cmilestub = MUBmile}
     if(input$linestub =='19' && input$Cstation19 == 'NVD') {Cmilestub = NVDmile}
+    if(input$linestub =='20' && input$Cstation20 == 'CAJ') {Cmilestub = CAJmile}
+    if(input$linestub =='20' && input$Cstation20 == 'SMB') {Cmilestub = SMBmile}
+    if(input$linestub =='20' && input$Cstation20 == 'COA') {Cmilestub = COAmile}
+    if(input$linestub =='20' && input$Cstation20 == 'MUB') {Cmilestub = MUBmile}
+    if(input$linestub =='20' && input$Cstation20 == 'NVD') {Cmilestub = NVDmile}
     return(Cmilestub)
   })
   
@@ -983,6 +1064,10 @@ server <- function(input,output) {
     if(input$linestub =='19' && input$Astation19 == 'SMB') {Aelestub = SMBele}
     if(input$linestub =='19' && input$Astation19 == 'COA') {Aelestub = COAele}
     if(input$linestub =='19' && input$Astation19 == 'MUB') {Aelestub = MUBele}
+    if(input$linestub =='20' && input$Astation20 == 'ATJ') {Aelestub = ATJele}
+    if(input$linestub =='20' && input$Astation20 == 'SMB') {Aelestub = SMBele}
+    if(input$linestub =='20' && input$Astation20 == 'COA') {Aelestub = COAele}
+    if(input$linestub =='20' && input$Astation20 == 'MUB') {Aelestub = MUBele}
     return(Aelestub)
   })
   
@@ -1000,6 +1085,11 @@ server <- function(input,output) {
     if(input$linestub =='19' && input$Bstation19 == 'SMB') {Belestub = SMBele}
     if(input$linestub =='19' && input$Bstation19 == 'COA') {Belestub = COAele}
     if(input$linestub =='19' && input$Bstation19 == 'MUB') {Belestub = MUBele}
+    if(input$linestub =='20' && input$Bstation20 == 'ATJ') {Belestub = ATJele}
+    if(input$linestub =='20' && input$Bstation20 == 'CAJ') {Belestub = CAJele}
+    if(input$linestub =='20' && input$Bstation20 == 'SMB') {Belestub = SMBele}
+    if(input$linestub =='20' && input$Bstation20 == 'COA') {Belestub = COAele}
+    if(input$linestub =='20' && input$Bstation20 == 'MUB') {Belestub = MUBele}
     return(Belestub)
   })
   
@@ -1018,6 +1108,11 @@ server <- function(input,output) {
     if(input$linestub =='19' && input$Cstation19 == 'COA') {Celestub = COAele}
     if(input$linestub =='19' && input$Cstation19 == 'MUB') {Celestub = MUBele}
     if(input$linestub =='19' && input$Cstation19 == 'NVD') {Celestub = NVDele}
+    if(input$linestub =='20' && input$Cstation20 == 'CAJ') {Celestub = CAJele}
+    if(input$linestub =='20' && input$Cstation20 == 'SMB') {Celestub = SMBele}
+    if(input$linestub =='20' && input$Cstation20 == 'COA') {Celestub = COAele}
+    if(input$linestub =='20' && input$Cstation20 == 'MUB') {Celestub = MUBele}
+    if(input$linestub =='20' && input$Cstation20 == 'NVD') {Celestub = NVDele}
     return(Celestub)
   })
   
@@ -1028,6 +1123,7 @@ server <- function(input,output) {
     if(input$linestub =='18' && input$Astation18 == 'RMB') {xostub = 75}
     if(input$linestub =='18' && input$Astation18 == 'SWI') {xostub = 50}
     if(input$linestub == '19') {xostub = 50}
+    if(input$linestub == '20') {xostub = 50}
     return(xostub)
   })
   
@@ -1038,6 +1134,10 @@ server <- function(input,output) {
     if(input$linestub == '18' && input$Astation18 == 'RMB') {xstub = 0.2}
     if(input$linestub == '18' && input$Astation18 == 'SWI') {xstub = 0.233}
     if(input$linestub == '19') {xstub = 0.2}
+    if(input$linestub == '20' && input$Astation20 == 'ATJ') {xstub = 0.2}
+    if(input$linestub == '20' && input$Astation20 == 'SMB') {xstub = 0.125}
+    if(input$linestub == '20' && input$Astation20 == 'COA') {xstub = 0.125}
+    if(input$linestub == '20' && input$Astation20 == 'MUB') {xstub = 0.125}
     return(xstub)
   })
   
@@ -1094,6 +1194,16 @@ server <- function(input,output) {
     if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'COA') {rateinstub = input$ratestub^2*1.19214+0.92807*input$ratestub-0.221}
     if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'SMB') {rateinstub = input$ratestub^2*1.19214+0.92807*input$ratestub-0.221}
     if (input$linestub == '19' && input$productstub == "OIL" && input$Astation19 == 'MUB') {rateinstub = input$ratestub^2*1.19214+0.92807*input$ratestub-0.221}
+    if (input$linestub == '20' && input$productstub == "GAS" && input$Astation20 == 'ATJ') {rateinstub = input$ratestub^2*0.87833+0.7306*input$ratestub-0.25446}
+    if (input$linestub == '20' && input$productstub == "GAS" && input$Astation20 == 'COA') {rateinstub = input$ratestub^2*2.87791+1.2798*input$ratestub-0.21325}
+    if (input$linestub == '20' && input$productstub == "GAS" && input$Astation20 == 'SMB') {rateinstub = input$ratestub^2*2.87791+1.2798*input$ratestub-0.21325}
+    if (input$linestub == '20' && input$productstub == "GAS" && input$Astation20 == 'MUB') {rateinstub = input$ratestub^2*2.87791+1.2798*input$ratestub-0.21325}
+    if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'ATJ') {rateinstub = input$ratestub^2*1.1843+0.963*input$ratestub-0.254}
+    if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'COA') {rateinstub = input$ratestub^2*3.7774+1.984765*input$ratestub-0.31396}
+    if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'SMB') {rateinstub = input$ratestub^2*3.7774+1.984765*input$ratestub-0.31396}
+    if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'MUB') {rateinstub = input$ratestub^2*3.7774+1.984765*input$ratestub-0.31396}
+    
+  
     return(rateinstub)
   })
   
