@@ -1,8 +1,10 @@
 #install.packages("shiny")
 #library(shiny)
 #install.packages("shinythemes") and library
+#install.packages("dashboardthemes")
+#library(shinythemes)
 
-ui <- fluidPage( theme = shinytheme("united"),
+ui <- fluidPage( 
   headerPanel('Station Bypass DRA Tool'),
   
   mainPanel(
@@ -127,8 +129,8 @@ ui <- fluidPage( theme = shinytheme("united"),
   
   
 ),
-body <- dashboardBody(h2("Your PPM Results", width = 15),
-verbatimTextOutput("stats"))
+body <- h2("Your PPMv Results", width = 15),
+verbatimTextOutput("stats")
 
 ),
 
@@ -195,12 +197,13 @@ tabPanel("Line 3 & 4",
   
 ),
   
-  body <- dashboardBody(h2("Your PPM Results", width = 15),
-                        verbatimTextOutput("stats3"))       
+  body <- h2("Your PPMv Results", width = 15),
+                        verbatimTextOutput("stats3")       
   
   ),
 
 # Stublines Input (Not set to do bypasses across diameters yet)
+#which stublines are dual diameter? *check
 tabPanel("Stublines", 
          sidebarPanel(width = 7,
   sliderInput(inputId = "ratestub",
@@ -214,7 +217,11 @@ tabPanel("Stublines",
                        "Line 17" = 17,
                        "Line 18" = 18,
                        "Line 19" = 19,
-                       "Line 20" = 20)
+                       "Line 20" = 20,
+                       "Line 22" = 22,
+                       "Line 24"= 24, # Line 24 modeled as 7 inch consistent with DRA Optimization Tool
+                       "Line 27" = 27 # Line 27 modeled as 14 inch entirely per DRA Optimization Tool
+                       )
          ),       
   selectInput("productstub",
               "Select a Product",
@@ -363,6 +370,78 @@ tabPanel("Stublines",
                   "Murfreesboro" = "MUB",
                   "Nashville" = "NVD"))
   ),
+  conditionalPanel(
+    condition = "input.linestub =='22'",
+    selectInput("Astation22",
+                "Select Upstream Station",
+                choices = list(
+                  "Greensboro" = "GBJ"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='22'",
+    selectInput("Bstation22",
+                "Select Bypassing Station",
+                choices = list(
+                  "Greensboro" = "GBJ"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='22'",
+    selectInput("Cstation22",
+                "Select Downstream Station",
+                choices = list(
+                  "Selma" = "SLW"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='24'",
+    selectInput("Astation24",
+                "Select Upstream Station",
+                choices = list(
+                  "Greensboro" = "GBJ"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='24'",
+    selectInput("Bstation24",
+                "Select Bypassing Station",
+                choices = list(
+                  "Greensboro" = "GBJ"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='24'",
+    selectInput("Cstation24",
+                "Select Downstream Station",
+                choices = list(
+                  "Fayetteville" = "FVD"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='27'",
+    selectInput("Astation27",
+                "Select Upstream Station",
+                choices = list(
+                  "Mitchell" = "MLJ",
+                  "Powhatan" = "PWB",
+                  "Richmond" = "RDB",
+                  "Yorktown" = "YNB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='27'",
+    selectInput("Bstation27",
+                "Select Bypassing Station",
+                choices = list(
+                  "Mitchell" = "MLJ",
+                  "Powhatan" = "PWB",
+                  "Richmond" = "RDB",
+                  "Yorktown" = "YNB"))
+  ),
+  conditionalPanel(
+    condition = "input.linestub =='27'",
+    selectInput("Cstation27",
+                "Select Downstream Station",
+                choices = list(
+                  "Powhatan" = "PWB",
+                  "Richmond" = "RDB",
+                  "Yorktown" = "YNB",
+                  "Norfolk" = "NKD"))
+  ),
   
   numericInput(inputId = "dischargestub",
                label = "Enter a discharge pressure in psi",
@@ -375,13 +454,15 @@ tabPanel("Stublines",
                value = 40, min = 1, max = 1000),
          ),
   
-  body <- dashboardBody(h2("Your PPM Results", width = 15),
-                        verbatimTextOutput("statstub"))
+  body <- h2("Your PPMv Results", width = 15),
+                        verbatimTextOutput("statstub")
          ),
 
 tabPanel("How Tool Works"),
 tabPanel("Old Process",
-    body <- dashboardBody(br(),
+    mainPanel(br(),
+      strong("Below you will find the process of how to obtain the PPMv using the original Nomograph Method.*NO exaggerations were made on these steps*"), tags$br(), 
+      br(),
       strong("1 - Draw Pressure Gradient on the Line Specific Nomograph"), tags$br(), 
                           "For station bypasses:", tags$br(),
                           "step 1.1) Mark the upstream station discharge pressure",tags$br(),
@@ -946,8 +1027,15 @@ server <- function(input,output) {
   output$LOL3 <- renderPrint("Have a Great Day")
   
   #STUB LINES START HERE
+  ###################################################
+  ###################################################
+  ###################################################
+  ###################################################
+  ###################################################
+  ###################################################
+  ###################################################
   
-  #mileage data
+  #Mileage data
   ATJmile = 0
   DVDmile = 24.14
   MNBmile = 94.38
@@ -961,6 +1049,14 @@ server <- function(input,output) {
   COAmile = 139.94 #CLB is the symbol but it has been used previously
   MUBmile = 197.08
   NVDmile = 239.71
+  GBJmile = 0
+  SLWmile = 106.54
+  FVDmile = 118.5
+  MLJmile = 0
+  PWBmile = 25.74
+  RDBmile = 54.32
+  YNBmile = 107.81
+  NKDmile = 155.38
   
   #elevation data
   ATJele = 954.75
@@ -976,6 +1072,14 @@ server <- function(input,output) {
   COAele = 1989
   MUBele = 627
   NVDele = 528
+  GBJele = 870.48
+  SLWele = 152
+  FVDele = 226
+  MLJele = 370.5
+  PWBele = 391
+  RDBele = 20.25
+  YNBele = 59
+  NKDele = 11
   
   SGstub <- reactive({
     if(input$productstub == 'GAS') {SGstub = 0.73}
@@ -1005,6 +1109,15 @@ server <- function(input,output) {
     if(input$linestub =='20' && input$Astation20 == 'SMB') {Amilestub = SMBmile}
     if(input$linestub =='20' && input$Astation20 == 'COA') {Amilestub = COAmile}
     if(input$linestub =='20' && input$Astation20 == 'MUB') {Amilestub = MUBmile}
+    if(input$linestub =='22' && input$Astation22 == 'GBJ') {Amilestub = GBJmile}
+    if(input$linestub =='24' && input$Astation24 == 'GBJ') {Amilestub = GBJmile}
+    if(input$linestub =='27' && input$Astation27 == 'MLJ') {Amilestub = MLJmile}
+    if(input$linestub =='27' && input$Astation27 == 'PWB') {Amilestub = PWBmile}
+    if(input$linestub =='27' && input$Astation27 == 'RDB') {Amilestub = RDBmile}
+    if(input$linestub =='27' && input$Astation27 == 'YNB') {Amilestub = YNBmile}
+    
+  
+    
     return(Amilestub)
   })
 
@@ -1027,6 +1140,15 @@ server <- function(input,output) {
     if(input$linestub =='20' && input$Bstation20 == 'SMB') {Bmilestub = SMBmile}
     if(input$linestub =='20' && input$Bstation20 == 'COA') {Bmilestub = COAmile}
     if(input$linestub =='20' && input$Bstation20 == 'MUB') {Bmilestub = MUBmile}
+    if(input$linestub =='22' && input$Bstation22 == 'GBJ') {Bmilestub = GBJmile}
+    if(input$linestub =='24' && input$Bstation24 == 'GBJ') {Bmilestub = GBJmile}
+    if(input$linestub =='27' && input$Bstation27 == 'MLJ') {Bmilestub = MLJmile}
+    if(input$linestub =='27' && input$Bstation27 == 'PWB') {Bmilestub = PWBmile}
+    if(input$linestub =='27' && input$Bstation27 == 'RDB') {Bmilestub = RDBmile}
+    if(input$linestub =='27' && input$Bstation27 == 'YNB') {Bmilestub = YNBmile}
+    
+    
+    
     return(Bmilestub)
   })
   
@@ -1049,6 +1171,15 @@ server <- function(input,output) {
     if(input$linestub =='20' && input$Cstation20 == 'COA') {Cmilestub = COAmile}
     if(input$linestub =='20' && input$Cstation20 == 'MUB') {Cmilestub = MUBmile}
     if(input$linestub =='20' && input$Cstation20 == 'NVD') {Cmilestub = NVDmile}
+    if(input$linestub =='22' && input$Cstation22 == 'SLW') {Cmilestub = SLWmile}
+    if(input$linestub =='24' && input$Cstation24 == 'FVD') {Cmilestub = FVDmile}
+    if(input$linestub =='27' && input$Cstation27 == 'PWB') {Cmilestub = PWBmile}
+    if(input$linestub =='27' && input$Cstation27 == 'RDB') {Cmilestub = RDBmile}
+    if(input$linestub =='27' && input$Cstation27 == 'YNB') {Cmilestub = YNBmile}
+    if(input$linestub =='27' && input$Cstation27 == 'NKD') {Cmilestub = NKDmile}
+    
+    
+    
     return(Cmilestub)
   })
   
@@ -1068,6 +1199,14 @@ server <- function(input,output) {
     if(input$linestub =='20' && input$Astation20 == 'SMB') {Aelestub = SMBele}
     if(input$linestub =='20' && input$Astation20 == 'COA') {Aelestub = COAele}
     if(input$linestub =='20' && input$Astation20 == 'MUB') {Aelestub = MUBele}
+    if(input$linestub =='22' && input$Astation22 == 'GBJ') {Aelestub = GBJele}
+    if(input$linestub =='24' && input$Astation24 == 'GBJ') {Aelestub = GBJele}
+    if(input$linestub =='27' && input$Astation27 == 'MLJ') {Aelestub = MLJele}
+    if(input$linestub =='27' && input$Astation27 == 'PWB') {Aelestub = PWBele}
+    if(input$linestub =='27' && input$Astation27 == 'RDB') {Aelestub = RDBele}
+    if(input$linestub =='27' && input$Astation27 == 'YNB') {Aelestub = YNBele}
+    
+    
     return(Aelestub)
   })
   
@@ -1090,6 +1229,13 @@ server <- function(input,output) {
     if(input$linestub =='20' && input$Bstation20 == 'SMB') {Belestub = SMBele}
     if(input$linestub =='20' && input$Bstation20 == 'COA') {Belestub = COAele}
     if(input$linestub =='20' && input$Bstation20 == 'MUB') {Belestub = MUBele}
+    if(input$linestub =='22' && input$Bstation22 == 'GBJ') {Belestub = GBJele}
+    if(input$linestub =='24' && input$Bstation24 == 'GBJ') {Belestub = GBJele}
+    if(input$linestub =='27' && input$Bstation27 == 'MLJ') {Belestub = MLJele}
+    if(input$linestub =='27' && input$Bstation27 == 'PWB') {Belestub = PWBele}
+    if(input$linestub =='27' && input$Bstation27 == 'RDB') {Belestub = RDBele}
+    if(input$linestub =='27' && input$Bstation27 == 'YNB') {Belestub = YNBele}
+    
     return(Belestub)
   })
   
@@ -1113,6 +1259,13 @@ server <- function(input,output) {
     if(input$linestub =='20' && input$Cstation20 == 'COA') {Celestub = COAele}
     if(input$linestub =='20' && input$Cstation20 == 'MUB') {Celestub = MUBele}
     if(input$linestub =='20' && input$Cstation20 == 'NVD') {Celestub = NVDele}
+    if(input$linestub =='22' && input$Cstation22 == 'SLW') {Celestub = SLWele}
+    if(input$linestub =='24' && input$Cstation24 == 'FVD') {Celestub = FVDele}
+    if(input$linestub =='27' && input$Cstation27 == 'PWB') {Celestub = PWBele}
+    if(input$linestub =='27' && input$Cstation27 == 'RDB') {Celestub = RDBele}
+    if(input$linestub =='27' && input$Cstation27 == 'YNB') {Celestub = YNBele}
+    if(input$linestub =='27' && input$Cstation27 == 'NKD') {Celestub = NKDele}
+    
     return(Celestub)
   })
   
@@ -1124,6 +1277,9 @@ server <- function(input,output) {
     if(input$linestub =='18' && input$Astation18 == 'SWI') {xostub = 50}
     if(input$linestub == '19') {xostub = 50}
     if(input$linestub == '20') {xostub = 50}
+    if(input$linestub == '22') {xostub = 50}
+    if(input$linestub == '24') {xostub = 50}
+    if(input$linestub == '27') {xostub = 25}
     return(xostub)
   })
   
@@ -1138,12 +1294,17 @@ server <- function(input,output) {
     if(input$linestub == '20' && input$Astation20 == 'SMB') {xstub = 0.125}
     if(input$linestub == '20' && input$Astation20 == 'COA') {xstub = 0.125}
     if(input$linestub == '20' && input$Astation20 == 'MUB') {xstub = 0.125}
+    if(input$linestub == '22') {xstub = 0.217}
+    if(input$linestub == '24') {xstub = 0.2}
+    if(input$linestub == '27') {xstub = 0.25}
     return(xstub)
   })
   
   ystub <- reactive({
     if(input$productstub == 'GAS') {ystub = 0.0079}
     if(input$productstub == 'OIL') {ystub = 0.0067}
+    if(input$linestub == '22' && input$productstub == 'GAS') {ystub = 0.0069}
+    if(input$linestub == '22' && input$productstub == 'OIL') {ystub = 0.0059}
     return(ystub)
   })
 
@@ -1202,6 +1363,12 @@ server <- function(input,output) {
     if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'COA') {rateinstub = input$ratestub^2*3.7774+1.984765*input$ratestub-0.31396}
     if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'SMB') {rateinstub = input$ratestub^2*3.7774+1.984765*input$ratestub-0.31396}
     if (input$linestub == '20' && input$productstub == "OIL" && input$Astation20 == 'MUB') {rateinstub = input$ratestub^2*3.7774+1.984765*input$ratestub-0.31396}
+    if (input$linestub == '22' && input$productstub == "GAS" && input$Astation22 == 'GBJ') {rateinstub = input$ratestub^2*0.121259+0.09428*input$ratestub-0.0422}
+    if (input$linestub == '22' && input$productstub == "OIL" && input$Astation22 == 'GBJ') {rateinstub = input$ratestub^2*0.14+0.1964*input$ratestub-0.11582}
+    if (input$linestub == '24' && input$productstub == "GAS" && input$Astation24 == 'GBJ') {rateinstub = input$ratestub^2*4.2413+2.1646*input$ratestub-0.4578}
+    if (input$linestub == '24' && input$productstub == "OIL" && input$Astation24 == 'GBJ') {rateinstub = input$ratestub^2*5.5675+3.2903*input$ratestub-0.6769}
+    if (input$linestub == '27' && input$productstub == "GAS") {rateinstub = input$ratestub^2*0.10027+0.23043*input$ratestub-0.2131}
+    if (input$linestub == '27' && input$productstub == "OIL") {rateinstub = input$ratestub^2*0.12897+0.33204*input$ratestub-0.29045}
     
   
     return(rateinstub)
@@ -1215,7 +1382,7 @@ server <- function(input,output) {
   output$PPM_Resultstub <- renderPrint('PPM results provided below!')
   output$statstub <- renderPrint(PPMstub())
   output$LOLstub <- renderPrint("Have a Great Day")
-  
+
   
   
   
@@ -1224,5 +1391,4 @@ shinyApp(ui = ui, server = server)
 
 #idea: show input parameters visualizations as check
 #Line 15: Gas only
-#Line 19: Gas Only
 #stublines not set to do bypasses across different diamters
